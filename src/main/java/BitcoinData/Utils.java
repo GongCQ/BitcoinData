@@ -3,7 +3,8 @@ import org.bitcoinj.core.Base58;
 
 public class Utils {
     public static final byte APPOINT_INVALID_BYTE = 127;
-    private static byte[] APPOINT_INVALID_ADDRESS = {};
+    private static byte[] APPOINT_INVALID_ADDRESS;
+    private static byte[] APPOINT_INVALID_TRANS_HASH;
     private static short APPOINT_INVALID_SHORT = 0;
     private static int APPOINT_INVALID_INT = 0;
     private static long APPOINT_INVALID_LONG = 0;
@@ -17,6 +18,16 @@ public class Utils {
             }
         }
         return APPOINT_INVALID_ADDRESS;
+    }
+
+    public final static byte[] GetAppointInvalidTransHash(){
+        if(APPOINT_INVALID_TRANS_HASH.length != Parameter.TRANS_HASH_SIZE){
+            APPOINT_INVALID_TRANS_HASH = new byte[Parameter.TRANS_HASH_SIZE];
+            for(int i = 0; i < Parameter.TRANS_HASH_SIZE; i++){
+                APPOINT_INVALID_TRANS_HASH[i] = APPOINT_INVALID_BYTE;
+            }
+        }
+        return APPOINT_INVALID_TRANS_HASH;
     }
 
     public final static short GetAppointInvalidShort(){
@@ -132,6 +143,22 @@ public class Utils {
         return s;
     }
 
+    public static void ShortToBytes(short s, byte[] bytes, int begin){
+        int temp = s;
+        bytes[begin + 0] = (byte)(temp & 0xff);
+        temp = temp >> 8; // 向右移8位
+        bytes[begin + 1] = (byte)(temp & 0xff);
+    }
+
+    public static short BytesToShort(byte[] bytes, int begin){
+        short s = 0;
+        short s0 = (short) (bytes[begin + 0] & 0xff);// 最低位
+        short s1 = (short) (bytes[begin + 1] & 0xff);
+        s1 <<= 8;
+        s = (short) (s0 | s1);
+        return s;
+    }
+
     public static byte[] IntToBytes(int i){
         byte[] b = new byte[4];
         b[0] = (byte) ((i & 0xff000000) >> 24);
@@ -151,6 +178,20 @@ public class Utils {
                 (0x00ff0000 	& (bytes[1] << 16))  |
                 (0x0000ff00 	& (bytes[2] << 8))   |
                 (0x000000ff 	&  bytes[3]);
+    }
+
+    public static void IntToBytes(int i, byte[] bytes, int begin){
+        bytes[begin + 0] = (byte) ((i & 0xff000000) >> 24);
+        bytes[begin + 1] = (byte) ((i & 0x00ff0000) >> 16);
+        bytes[begin + 2] = (byte) ((i & 0x0000ff00) >> 8);
+        bytes[begin + 3] = (byte)  (i & 0x000000ff);
+    }
+
+    public static int BytesToInt(byte[] bytes, int begin){
+        return 	(0xff000000 	& (bytes[begin + 0] << 24))  |
+                (0x00ff0000 	& (bytes[begin + 1] << 16))  |
+                (0x0000ff00 	& (bytes[begin + 2] << 8))   |
+                (0x000000ff 	&  bytes[begin + 3]);
     }
 
     public static byte[] LongToBytes(long l){
@@ -181,6 +222,29 @@ public class Utils {
                 (0x00000000000000ffL 	&  (long)bytes[7]);
     }
 
+    public static void LongToBytes(long l, byte[] bytes, int begin){
+        bytes[begin + 0] = (byte)  (0xff & (l >> 56));
+        bytes[begin + 1] = (byte)  (0xff & (l >> 48));
+        bytes[begin + 2] = (byte)  (0xff & (l >> 40));
+        bytes[begin + 3] = (byte)  (0xff & (l >> 32));
+        bytes[begin + 4] = (byte)  (0xff & (l >> 24));
+        bytes[begin + 5] = (byte)  (0xff & (l >> 16));
+        bytes[begin + 6] = (byte)  (0xff & (l >> 8));
+        bytes[begin + 7] = (byte)  (0xff & l);
+
+    }
+
+    public static long BytesToLong(byte[] bytes, int begin){
+        return 	(0xff00000000000000L 	& ((long)bytes[begin + 0] << 56))  |
+                (0x00ff000000000000L 	& ((long)bytes[begin + 1] << 48))  |
+                (0x0000ff0000000000L 	& ((long)bytes[begin + 2] << 40))  |
+                (0x000000ff00000000L 	& ((long)bytes[begin + 3] << 32))  |
+                (0x00000000ff000000L 	& ((long)bytes[begin + 4] << 24))  |
+                (0x0000000000ff0000L 	& ((long)bytes[begin + 5] << 16))  |
+                (0x000000000000ff00L 	& ((long)bytes[begin + 6] << 8))   |
+                (0x00000000000000ffL 	&  (long)bytes[begin + 7]);
+    }
+
     public static byte[] DoubleToBytes(double d){
         long longbits = Double.doubleToLongBits(d);
         return LongToBytes(longbits);
@@ -192,6 +256,23 @@ public class Utils {
                     String.format("BytesToDouble, the length of byte array should be 8, but %d gotten", bytes.length));
         }
         return Double.longBitsToDouble(BytesToLong(bytes));
+    }
+
+
+
+    public static void DoubleToBytes(double d, byte[] bytes, int begin){
+        long value = Double.doubleToRawLongBits(d);
+        for (int i = 0; i < 8; i++) {
+            bytes[begin + i] = (byte) ((value >> 8 * i) & 0xff);
+        }
+    }
+
+    public static double BytesToDouble(byte[] bytes, int begin){
+        long value = 0;
+        for (int i = 0; i < 8; i++) {
+            value |= ((long) (bytes[begin + i] & 0xff)) << (8 * i);
+        }
+        return Double.longBitsToDouble(value);
     }
 
     private static final char[] HEX_CHAR = {'0', '1', '2', '3', '4', '5', '6', '7',

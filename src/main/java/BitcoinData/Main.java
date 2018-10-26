@@ -10,6 +10,9 @@ import BitcoinData.Utils;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        System.out.println(34/71);
+        System.out.println(70/71);
+        System.out.println(72/71);
 
         HashMap<byte[], String> hm = new HashMap<byte[], String>();
         byte[] kkkkkk = {3,1,0};

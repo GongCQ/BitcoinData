@@ -28,33 +28,17 @@ public class HashIndexRecord {
         this.isValid = Utils.IsValidAddress(address);
         this.hasNext = false;
         if (this.isValid) {
-            byte[] shortBytes = new byte[Parameter.SIZE_OF_SHORT];
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE,
-                    shortBytes, 0, 2);
-            this.nextConflictFileCode = Utils.BytesToShort(shortBytes);
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + (2 + 4) * 1,
-                    shortBytes, 0, 2);
-            this.firstFileCode = Utils.BytesToShort(shortBytes);
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2,
-                    shortBytes, 0, 2);
-            this.lastFileCode = Utils.BytesToShort(shortBytes);
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3,
-                    shortBytes, 0, 2);
-            this.selfFileCode = Utils.BytesToShort(shortBytes);
+            this.nextConflictFileCode = Utils.BytesToShort(hashIndexRecordBytes, Parameter.ADDRESS_SIZE);
+            this.nextConflictLocationInFile = Utils.BytesToInt(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2);
 
-            byte[] intBytes = new byte[Parameter.SIZE_OF_INT];
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2,
-                    intBytes, 0, 4);
-            this.nextConflictLocationInFile = Utils.BytesToInt(intBytes);
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2 + (2 + 4) * 1,
-                    intBytes, 0, 4);
-            this.firstLocationInFile = Utils.BytesToInt(intBytes);
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2 + (2 + 4) * 2,
-                    intBytes, 0, 4);
-            this.lastLocationInFile = Utils.BytesToInt(intBytes);
-            System.arraycopy(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2 + (2 + 4) * 3,
-                    intBytes, 0, 4);
-            this.selfLocationInFile = Utils.BytesToInt(intBytes);
+            this.firstFileCode = Utils.BytesToShort(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + (2 + 4) * 1);
+            this.firstLocationInFile = Utils.BytesToInt(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2 + (2 + 4) * 1);
+
+            this.lastFileCode =  Utils.BytesToShort(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2);
+            this.lastLocationInFile = Utils.BytesToInt(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2 + (2 + 4) * 2);
+
+            this.selfFileCode =  Utils.BytesToShort(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3);
+            this.selfLocationInFile = Utils.BytesToInt(hashIndexRecordBytes, Parameter.ADDRESS_SIZE + 2 + (2 + 4) * 3);
 
             this.isConflict = hashIndexRecordBytes[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE - 1];
 
@@ -77,6 +61,8 @@ public class HashIndexRecord {
         this.firstLocationInFile = firstLocationInFile;
         this.lastFileCode = lastFileCode;
         this.lastLocationInFile = lastLocationInFile;
+        this.selfFileCode = selfFileCode;
+        this.selfLocationInFile = selfLocationInFile;
         this.isConflict = isConflict;
 
         this.hasNext = this.nextConflictFileCode != Utils.GetAppointInvalidShort() &&
@@ -85,25 +71,14 @@ public class HashIndexRecord {
         this.bytes = new byte[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE];
         System.arraycopy(address, 0, bytes, 0, Parameter.ADDRESS_SIZE);
 
-        System.arraycopy(Utils.ShortToBytes(nextConflictFileCode), 0,
-                bytes, Parameter.ADDRESS_SIZE + 0, 2);
-        System.arraycopy(Utils.IntToBytes(nextConflictLocationInFile), 0,
-                bytes, Parameter.ADDRESS_SIZE + 2, 4);
-
-        System.arraycopy(Utils.ShortToBytes(firstFileCode), 0,
-                bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 1, 2);
-        System.arraycopy(Utils.IntToBytes(firstLocationInFile), 0,
-                bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 1 + 2, 4);
-
-        System.arraycopy(Utils.ShortToBytes(lastFileCode), 0,
-                bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2, 2);
-        System.arraycopy(Utils.IntToBytes(lastLocationInFile), 0,
-                bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2 + 2, 4);
-
-        System.arraycopy(Utils.ShortToBytes(selfFileCode), 0,
-                bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3, 2);
-        System.arraycopy(Utils.IntToBytes(selfLocationInFile), 0,
-                bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3 + 2, 4);
+        Utils.ShortToBytes(nextConflictFileCode, this.bytes, Parameter.ADDRESS_SIZE);
+        Utils.IntToBytes(nextConflictLocationInFile, this.bytes, Parameter.ADDRESS_SIZE + 2);
+        Utils.ShortToBytes(firstFileCode, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 1);
+        Utils.IntToBytes(firstLocationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 1 + 2);
+        Utils.ShortToBytes(lastFileCode, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2);
+        Utils.IntToBytes(lastLocationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2 + 2);
+        Utils.ShortToBytes(selfFileCode, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3);
+        Utils.IntToBytes(selfLocationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3 + 2);
 
         this.bytes[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE] = isConflict;
 

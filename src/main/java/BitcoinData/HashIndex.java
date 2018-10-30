@@ -17,7 +17,7 @@ public class HashIndex {
         this.indexFile = new HashIndexFile[Parameter.MAX_HASH_INDEX_FILE];
         for(short i = 0; i < Parameter.MAX_HASH_INDEX_FILE; i++){
             String fileName = Parameter.INDEX_PATH + HashIndexFile.GetHashIndexFileNameByCode(i);
-            this.indexFile[i] = new HashIndexFile(fileName, "rw");
+            this.indexFile[i] = new HashIndexFile(fileName, "rw", false);
         }
 
         // hash conflict file
@@ -34,7 +34,7 @@ public class HashIndex {
                     throw new IllegalAccessException(String.format("find a invalid hash conflict file, " +
                             "name %s, code %d.", name, fileCode));
                 }
-                this.hashConflictFile.add(fileCode, new HashIndexFile(file.getAbsolutePath(), "rw"));
+                this.hashConflictFile.add(fileCode, new HashIndexFile(file.getAbsolutePath(), "rw", true));
                 System.out.println(String.format("find a hash conflict file, " + name + ", code %d", fileCode));
             }
         }
@@ -121,17 +121,16 @@ public class HashIndex {
     private HashConflictLocation GetNextFreeHashConflictLocation() throws IOException{
         if(this.hashConflictFile.size() == 0){
             final String fileName = HashIndexFile.GetHashConflictFileNameByCode((short)0);
-            this.hashConflictFile.add(0, new HashIndexFile(fileName, "rw"));
+            this.hashConflictFile.add(0, new HashIndexFile(fileName, "rw", true));
         }
         HashIndexFile lastFile = this.hashConflictFile.get(this.hashConflictFile.size() - 1);
         if (lastFile.FreeNum() <= 0){
             String newFileName = HashIndexFile.GetHashConflictFileNameByCode((short)this.hashConflictFile.size());
-            this.hashConflictFile.add(this.hashConflictFile.size(), new HashIndexFile(newFileName, "rw"));
+            this.hashConflictFile.add(this.hashConflictFile.size(), new HashIndexFile(newFileName, "rw", true));
         }
         lastFile = this.hashConflictFile.get(this.hashConflictFile.size() - 1);
-        HashConflictLocation location = new HashConflictLocation();
-        location.fileCode = (short)(this.hashConflictFile.size() - 1);
-        location.locationInFile = lastFile.GetNextFreeLocation();
+        HashConflictLocation location = new HashConflictLocation((short)(this.hashConflictFile.size() - 1),
+                                                                  lastFile.GetNextFreeLocation());
         return location;
     }
 }

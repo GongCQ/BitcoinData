@@ -58,6 +58,7 @@ public class Parameter {
     public static final int HASH_INDEX_MAX_CACHE_NUM = 10000000;
 
     public static final boolean CHECK_BEFOR_WRITE_HASH_INDEX_RECORD = true;
+    public static final boolean CHECK_BEFOR_WRITE_DATA = true;
 
 
 }

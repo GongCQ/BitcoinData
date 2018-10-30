@@ -11,8 +11,9 @@ public class HashIndexFile {
     private long reservedSize;
     private int usedNum;
     private byte[] invalidAddress;
+    private boolean isConflictFile;
 
-    public HashIndexFile(String name, String authority) throws IOException {
+    public HashIndexFile(final String name, final String authority, final boolean isConflictFile) throws IOException {
         this.name = name;
         this.filePath = Parameter.INDEX_PATH + this.name;
         File file = new File(this.filePath);
@@ -47,6 +48,7 @@ public class HashIndexFile {
         this.reservedSize = this.indexFile.readLong();
         this.usedNum = (int)(this.indexFile.readLong());
         this.invalidAddress = Utils.GetAppointInvalidAddress();
+        this.isConflictFile = isConflictFile;
     }
 
     private static final long GetByteFileLocation(int locationInFile){
@@ -73,10 +75,14 @@ public class HashIndexFile {
                 throw new IllegalArgumentException("the record at locationInFile is valid, can't cover it. ");
             }
         }
+        this.usedNum += 1;
+        if(this.isConflictFile){
+            this.indexFile.seek(Parameter.SIZE_OF_LONG);
+            this.indexFile.writeLong(this.usedNum);
+        }
         final long byteFileLocation = GetByteFileLocation(locationInFile);
         this.indexFile.seek(byteFileLocation);
         this.indexFile.write(record.Bytes());
-        this.usedNum += 1;
     }
 
     public void SetNextLocation(final int recordLocation, final short nextFileCode, final int nextLocationInFile) throws IOException{

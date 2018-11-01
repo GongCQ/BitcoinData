@@ -51,7 +51,7 @@ public class HashIndexRecord {
     public HashIndexRecord(byte[] address, final short nextConflictFileCode, final int nextConflictLocationInFile,
                            final short firstFileCode, final int firstLocationInFile,
                            final short lastFileCode, final int lastLocationInFile,
-                           final short selfFileCode, final int selfLocationInFile, byte isConflict) {
+                           final short selfFileCode, final int selfLocationInFile, boolean isConflict) {
         this.isValid = Utils.IsValidAddress(address);
 
         this.address = address;
@@ -63,7 +63,7 @@ public class HashIndexRecord {
         this.lastLocationInFile = lastLocationInFile;
         this.selfFileCode = selfFileCode;
         this.selfLocationInFile = selfLocationInFile;
-        this.isConflict = isConflict;
+        this.isConflict = (byte)(isConflict ? 127 : -128);
 
         this.hasNext = this.nextConflictFileCode != Utils.GetAppointInvalidShort() &&
                        this.nextConflictLocationInFile != Utils.GetAppointInvalidInt();
@@ -80,8 +80,17 @@ public class HashIndexRecord {
         Utils.ShortToBytes(selfFileCode, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3);
         Utils.IntToBytes(selfLocationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3 + 2);
 
-        this.bytes[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE] = isConflict;
+        this.bytes[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE - 1] = (byte)(isConflict ? 127 : -128);
 
+    }
+
+    public void UpdateLocation(short fileCode, int locationInFile, boolean isConflict){
+        this.selfFileCode = fileCode;
+        this.selfLocationInFile = locationInFile;
+        this.isConflict = (byte)(isConflict ? 127 : -128);
+        Utils.ShortToBytes(this.selfFileCode, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3);
+        Utils.IntToBytes(this.selfLocationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3 + 2);
+        this.bytes[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE - 1] = (byte)(isConflict ? 127 : -128);
     }
 
     public final boolean IsValid() {

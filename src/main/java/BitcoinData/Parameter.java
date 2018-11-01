@@ -60,5 +60,4 @@ public class Parameter {
     public static final boolean CHECK_BEFOR_WRITE_HASH_INDEX_RECORD = true;
     public static final boolean CHECK_BEFOR_WRITE_DATA = true;
 
-
 }

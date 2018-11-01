@@ -3,17 +3,21 @@ package BitcoinData;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class HashIndexFile {
+    private short code;
     private String name;
     private String filePath;
     private RandomAccessFile indexFile;
     private long reservedSize;
     private int usedNum;
-    private byte[] invalidAddress;
     private boolean isConflictFile;
+    private ReentrantLock appendLock;
+    private ReentrantLock updateLock;
 
-    public HashIndexFile(final String name, final String authority, final boolean isConflictFile) throws IOException {
+    public HashIndexFile(final short code, final String name, final String authority, final boolean isConflictFile) throws IOException {
+        this.code = code;
         this.name = name;
         this.filePath = Parameter.INDEX_PATH + this.name;
         File file = new File(this.filePath);
@@ -47,8 +51,10 @@ public class HashIndexFile {
         this.indexFile.seek(0);
         this.reservedSize = this.indexFile.readLong();
         this.usedNum = (int)(this.indexFile.readLong());
-        this.invalidAddress = Utils.GetAppointInvalidAddress();
         this.isConflictFile = isConflictFile;
+
+        this.appendLock = new ReentrantLock();
+        this.updateLock = new ReentrantLock();
     }
 
     private static final long GetByteFileLocation(int locationInFile){
@@ -66,6 +72,10 @@ public class HashIndexFile {
         return hashIndexRecord;
     }
 
+    public final int GetNextFreeLocation(){
+        return this.usedNum;
+    }
+
     public void SetRecord(final int locationInFile, final HashIndexRecord record) throws IOException{
         if(Parameter.CHECK_BEFOR_WRITE_HASH_INDEX_RECORD){
             if (locationInFile >= Parameter.MAX_RECORD_IN_HASH_INDEX_FILE){
@@ -75,7 +85,6 @@ public class HashIndexFile {
                 throw new IllegalArgumentException("the record at locationInFile is valid, can't cover it. ");
             }
         }
-        this.usedNum += 1;
         if(this.isConflictFile){
             this.indexFile.seek(Parameter.SIZE_OF_LONG);
             this.indexFile.writeLong(this.usedNum);
@@ -83,6 +92,20 @@ public class HashIndexFile {
         final long byteFileLocation = GetByteFileLocation(locationInFile);
         this.indexFile.seek(byteFileLocation);
         this.indexFile.write(record.Bytes());
+    }
+
+    public int AppendRecord(HashIndexRecord record) throws IOException{
+//      this.appendLock.lock();
+        final int nextFreeLocation = this.GetNextFreeLocation();
+        record.UpdateLocation(this.code, nextFreeLocation, this.isConflictFile);
+        this.SetRecord(nextFreeLocation, record);
+        if(this.isConflictFile){
+            this.usedNum++;
+            this.indexFile.seek(Parameter.SIZE_OF_LONG);
+            this.indexFile.writeLong(this.usedNum);
+        }
+//      this.appendLock.unlock();
+        return nextFreeLocation;
     }
 
     public void SetNextLocation(final int recordLocation, final short nextFileCode, final int nextLocationInFile) throws IOException{
@@ -110,10 +133,6 @@ public class HashIndexFile {
 
     public final int FreeNum(){
         return Parameter.MAX_RECORD_IN_HASH_INDEX_FILE - this.usedNum;
-    }
-
-    public final int GetNextFreeLocation(){
-        return this.usedNum;
     }
 
     public static final String GetHashIndexFileNameByCode(short code){

@@ -99,6 +99,20 @@ public class DataFile {
         return this.sectionNum * Parameter.SECTION_SIZE * Parameter.SIZE_OF_LONG * 2;
     }
 
+    private int SectionNum(){
+        return (int)this.sectionNum;
+    }
+
+    public int GetNextFreeSectionLocation() throws IOException{
+        if(this.sectionNum >= Parameter.SECTION_RECORD_NUM){
+            return -1;
+        }
+        this.sectionNum++;
+        this.dataFile.seek(Parameter.SIZE_OF_LONG);
+        this.dataFile.writeLong(this.sectionNum);
+        return (int)(this.sectionNum - 1);
+    }
+
     public static final String GetDataFileNameByCode(short code){
         return String.format("data_%d.data", code);
     }

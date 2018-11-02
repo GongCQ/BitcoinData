@@ -3,6 +3,8 @@ import org.bitcoinj.core.Base58;
 
 public class Utils {
     public static final byte APPOINT_INVALID_BYTE = 127;
+    public static final byte MIN_BYTE = -128;
+    public static final byte MAX_BYTE = 127;
     private static byte[] APPOINT_INVALID_ADDRESS;
     private static byte[] APPOINT_INVALID_TRANS_HASH;
     private static short APPOINT_INVALID_SHORT = 0;

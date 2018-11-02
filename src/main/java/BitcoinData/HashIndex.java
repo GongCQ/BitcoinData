@@ -49,10 +49,10 @@ public class HashIndex {
         if(record == null){
             record = this.indexFiles[GetIndexFileCode(address)].GetRecord(GetLocationInIndexFile(address));  // hash index
             while(!address.equals(record.Address())){  // hash conflict
-                if(!record.IsValid() || !record.HasNext() || this.hashConflictFile.get(record.NextConflictFileCode()) == null){
+                if(!record.IsValid() || !record.HasNext()){
                     return null;
                 }
-                record = this.hashConflictFile.get(record.NextConflictFileCode()).GetRecord(record.NextConflictLocationInFile());
+                record = this.hashConflictFile.get(record.SelfLocation().fileCode).GetRecord(record.SelfLocation().locationInFile);
             }
         }
         return record;
@@ -74,10 +74,8 @@ public class HashIndex {
             if(!record.IsValid()){  // hash free
                 SectionLocation freeSectionLocation = this.data.GetNextFreeSectionLocation();
                 HashIndexRecord newRecord = new HashIndexRecord(address,
-                        Utils.GetAppointInvalidShort(), Utils.GetAppointInvalidInt(),
-                        freeSectionLocation.fileCode, freeSectionLocation.locationInFile,
-                        freeSectionLocation.fileCode, freeSectionLocation.locationInFile,
-                        hashIndexFileCode, locationInHashIndexFile, false);
+                        HashConflictLocation.InvalidLocation(), freeSectionLocation, freeSectionLocation,
+                        new HashConflictLocation(hashIndexFileCode, locationInHashIndexFile, false));
                 this.indexFiles[hashIndexFileCode].SetRecord(locationInHashIndexFile, newRecord);
                 this.hashFreeLock.unlock();
                 return newRecord;
@@ -91,26 +89,25 @@ public class HashIndex {
             while(!address.equals(record.Address())){  // hash conflict
                 if(!record.HasNext()){
                     HashConflictLocation nextFreeLocation = this.GetNextFreeHashConflictLocation();
-                    HashIndexFile fileForRecord = record.IsConflict() ? this.hashConflictFile.get(record.SelfFileCode())
-                                                                      : this.indexFiles[record.SelfFileCode()];
+                    HashIndexFile fileForRecord = record.SelfLocation().isConflict ?
+                                                    this.hashConflictFile.get(record.SelfLocation().fileCode)
+                                                  : this.indexFiles[record.SelfLocation().fileCode];
 
                     SectionLocation freeSectionLocation = this.data.GetNextFreeSectionLocation();
                     HashIndexRecord newRecord = new HashIndexRecord(address,
-                                                                    Utils.GetAppointInvalidShort(), Utils.GetAppointInvalidInt(),     // no next hash index record
-                                                                    freeSectionLocation.fileCode, freeSectionLocation.locationInFile, // first section
-                                                                    freeSectionLocation.fileCode, freeSectionLocation.locationInFile, // last section
-                                                                    nextFreeLocation.fileCode, nextFreeLocation.locationInFile,       // self location
-                                                            true);
-                    HashIndexFile fileForNewRecord = this.hashConflictFile.get(newRecord.SelfFileCode());
+                                                                    HashConflictLocation.InvalidLocation(),     // no next hash index record
+                                                                    freeSectionLocation, freeSectionLocation,
+                                                                    new HashConflictLocation(nextFreeLocation.fileCode, nextFreeLocation.locationInFile,true));
+                    HashIndexFile fileForNewRecord = this.hashConflictFile.get(newRecord.SelfLocation().fileCode);
                     fileForNewRecord.AppendRecord(newRecord);
 
-                    fileForRecord.SetNextLocation(record.SelfLocationInFile(), newRecord.SelfFileCode(), newRecord.SelfLocationInFile());
+                    fileForRecord.SetNextLocation(record.SelfLocation().fileCode, newRecord.SelfLocation());
 
                     record = newRecord;
                     break;
                 }
                 else{
-                    record = this.hashConflictFile.get(record.NextConflictFileCode()).GetRecord(record.NextConflictLocationInFile());
+                    record = this.hashConflictFile.get(record.NextConflictLocation().fileCode).GetRecord(record.NextConflictLocation().locationInFile);
                 }
             }
             this.hashConflictLock.unlock();
@@ -152,7 +149,7 @@ public class HashIndex {
         }
         lastFile = this.hashConflictFile.get(this.hashConflictFile.size() - 1);
         HashConflictLocation location = new HashConflictLocation((short)(this.hashConflictFile.size() - 1),
-                                                                  lastFile.GetNextFreeLocation());
+                                                                  lastFile.GetNextFreeLocation(), true);
         return location;
     }
 }

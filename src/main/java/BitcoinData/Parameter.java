@@ -18,12 +18,13 @@ public class Parameter {
     public static final int SIZE_OF_BOOL = 1;
 
     public static final int MAX_DATA_FILE = 256;
+    public static final int DATA_FILE_HEAD_SIZE = 4 * (int)Math.pow(2, 20);  // 4MB
     public static final int ADDRESS_SIZE = 25;
-    public static final int SECTION_RECORD_NUM = 5;
+    public static final int SECTION_RECORD_NUM = 50;
     public static final int SECTION_LOCATOR_SIZE = SIZE_OF_SHORT + SIZE_OF_INT;
     public static final int TRANS_HASH_SIZE = 32;
     public static final int SECTION_HEAD_SIZE = ADDRESS_SIZE + SECTION_LOCATOR_SIZE + SECTION_LOCATOR_SIZE +
-                                                SIZE_OF_SHORT + SIZE_OF_SHORT + SIZE_OF_INT;
+                                                SIZE_OF_SHORT + SECTION_LOCATOR_SIZE + SIZE_OF_SHORT;
     public static final int SECTION_RECORD_SIZE =
              (TRANS_HASH_SIZE + SIZE_OF_INT + SIZE_OF_INT +
                                 SIZE_OF_BOOL + SIZE_OF_BOOL + SIZE_OF_BOOL +
@@ -36,9 +37,9 @@ public class Parameter {
             //                       total in address (int) | total out address (int)
             //                       total in value (double) | total out value (double)
     public static final int SECTION_SIZE = SECTION_HEAD_SIZE + SECTION_RECORD_NUM * SECTION_RECORD_SIZE;
-    public static final long DATA_FILE_SIZE = SIZE_OF_LONG + SIZE_OF_LONG + 2 * (long) Math.pow(2, 30);   // 2GB
-    public static final long MAX_SECTION_IN_DATA_FILE = (DATA_FILE_SIZE - SIZE_OF_LONG - SIZE_OF_LONG) / SECTION_SIZE;
-    public static final int DATA_FILE_EXTEND_SIZE = (int) Math.pow(2, 25);  // 32 MB
+    public static final long DATA_FILE_SIZE = DATA_FILE_HEAD_SIZE + 2 * (long) Math.pow(2, 30);   // 2GB
+    public static final long MAX_SECTION_IN_DATA_FILE = (DATA_FILE_SIZE - DATA_FILE_HEAD_SIZE) / SECTION_SIZE;
+    public static final int ADDRESS_SECTION_NUM = 1;
 
     public static final int ADDRESS_HASH_INDEX_RECORD_SIZE = ADDRESS_SIZE +
                                                               SIZE_OF_SHORT + SIZE_OF_INT +

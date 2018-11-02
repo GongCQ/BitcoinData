@@ -20,6 +20,9 @@ public class Data {
                 this.dataFiles[c] = new DataFile(c);
                 this.maxFileCode = c;
             }
+            else{
+                break;
+            }
         }
         this.getNextFreeSectionLock = new ReentrantLock();
         this.hashIndex = new HashIndex(this);
@@ -46,14 +49,20 @@ public class Data {
 
     public void SetRecord(final byte[] address, final SectionRecord record) throws IOException, IllegalAccessException{
         HashIndexRecord indexRecord = this.hashIndex.WriteSearch(address);
-        indexRecord.Fi
+        Section lastSection = this.GetSection(indexRecord.LastSectionLocation());
+        lastSection.AppendRecord(record);
+        this.dataFiles[lastSection.SelfLocation().fileCode].SetSection(lastSection, true);
     }
 
-    private final Section GetSection(SectionLocation location){
-
+    private Section GetSection(SectionLocation location) throws  IOException{
+        if(this.dataFiles[location.fileCode] == null){
+            throw new IllegalArgumentException("the data file for the location is null");
+        }
+        return this.dataFiles[location.fileCode].GetSection(location.locationInFile);
     }
 
-    public SectionRecord[] GetRecords(final byte[] address){
-
+    public final Section GetSection(final byte[] address) throws IOException{
+        HashIndexRecord indexRecord = this.hashIndex.ReadSearch(address);
+        return this.GetSection(indexRecord.LastSectionLocation());
     }
 }

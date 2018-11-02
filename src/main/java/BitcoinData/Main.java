@@ -3,6 +3,7 @@ package BitcoinData;
 import wf.bitcoin.javabitcoindrpcclient.*;
 import org.bitcoinj.core.Base58;
 import java.math.BigInteger;
+import java.util.BitSet;
 import java.util.HashMap;
 
 import BitcoinData.Utils;

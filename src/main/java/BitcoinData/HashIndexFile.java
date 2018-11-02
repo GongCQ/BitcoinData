@@ -97,7 +97,7 @@ public class HashIndexFile {
     public int AppendRecord(HashIndexRecord record) throws IOException{
 //      this.appendLock.lock();
         final int nextFreeLocation = this.GetNextFreeLocation();
-        record.UpdateLocation(this.code, nextFreeLocation, this.isConflictFile);
+        record.UpdateLocation(new HashConflictLocation(this.code, nextFreeLocation, this.isConflictFile));
         this.SetRecord(nextFreeLocation, record);
         if(this.isConflictFile){
             this.usedNum++;
@@ -108,7 +108,7 @@ public class HashIndexFile {
         return nextFreeLocation;
     }
 
-    public void SetNextLocation(final int recordLocation, final short nextFileCode, final int nextLocationInFile) throws IOException{
+    public void SetNextLocation(final int recordLocation, HashConflictLocation location) throws IOException{
         final long byteFileLocation = GetByteFileLocation(recordLocation);
         if(Parameter.CHECK_BEFOR_WRITE_HASH_INDEX_RECORD){
             final HashIndexRecord record = GetRecord(recordLocation);
@@ -119,8 +119,8 @@ public class HashIndexFile {
             }
         }
         this.indexFile.seek(byteFileLocation + Parameter.ADDRESS_SIZE);
-        this.indexFile.writeShort(nextFileCode);
-        this.indexFile.writeInt(nextLocationInFile);
+        this.indexFile.writeShort(location.fileCode);
+        this.indexFile.writeInt(location.locationInFile);
     }
 
     public final boolean IsFree(final int locationInFile) throws  IOException{

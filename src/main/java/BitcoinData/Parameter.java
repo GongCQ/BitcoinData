@@ -48,7 +48,7 @@ public class Parameter {
                                                               SIZE_OF_BOOL ;  //50 bytes
     public static final int HASH_FILE_CODE_POSITION = 4;
     public static final int HASH_FRAGMENT_BEGIN = 1;
-    public static final int HASH_FRAGMENT_END = 3;
+    public static final int HASH_FRAGMENT_END = 3; // 2 for debug, 3 for real.
     public static final int ADDRESS_HASH_SIZE = HASH_FRAGMENT_END - HASH_FRAGMENT_BEGIN + 1;
     public static final int MAX_RECORD_IN_HASH_INDEX_FILE = (int)Math.pow(2, ADDRESS_HASH_SIZE * 8);
     public static final long HASH_INDEX_FILE_SIZE = SIZE_OF_LONG + SIZE_OF_LONG +
@@ -60,5 +60,12 @@ public class Parameter {
 
     public static final boolean CHECK_BEFOR_WRITE_HASH_INDEX_RECORD = true;
     public static final boolean CHECK_BEFOR_WRITE_DATA = true;
+
+    public static void CheckParameter(){
+        if(MAX_SECTION_IN_DATA_FILE > DATA_FILE_HEAD_SIZE){
+            throw new IllegalArgumentException("MAX_SECTION_IN_DATA_FILE > DATA_FILE_HEAD_SIZE");
+        }
+
+    }
 
 }

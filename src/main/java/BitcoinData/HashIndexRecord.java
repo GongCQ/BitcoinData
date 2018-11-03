@@ -78,7 +78,6 @@ public class HashIndexRecord {
         Utils.IntToBytes(this.lastSectionLocation.locationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 2 + 2);
         Utils.ShortToBytes(this.selfLocation.fileCode, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3);
         Utils.IntToBytes(this.selfLocation.locationInFile, this.bytes, Parameter.ADDRESS_SIZE + (2 + 4) * 3 + 2);
-
         this.bytes[Parameter.ADDRESS_HASH_INDEX_RECORD_SIZE - 1] = (byte)(this.selfLocation.isConflict ? 127 : -128);
 
     }

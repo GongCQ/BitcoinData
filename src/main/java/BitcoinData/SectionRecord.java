@@ -1,6 +1,7 @@
 package BitcoinData;
 
 import javax.rmi.CORBA.Util;
+import java.util.Arrays;
 
 public class SectionRecord {
     private byte[] transHash;      // 0~31
@@ -40,7 +41,7 @@ public class SectionRecord {
 
         this.bytes = new byte[Parameter.SECTION_RECORD_SIZE];
         System.arraycopy(bytes, begin, this.bytes, 0, Parameter.SECTION_RECORD_SIZE);
-        this.isValid = this.transHash != Utils.GetAppointInvalidTransHash();
+        this.isValid = !Arrays.equals(this.transHash, Utils.GetAppointInvalidTransHash());
     }
 
     public SectionRecord(final byte[] bytes) {
@@ -63,7 +64,7 @@ public class SectionRecord {
         this.totalOutValue = Utils.BytesToDouble(bytes, 75);
 
         this.bytes = bytes;
-        this.isValid = this.transHash != Utils.GetAppointInvalidTransHash();
+        this.isValid = !Arrays.equals(this.transHash, Utils.GetAppointInvalidTransHash());
     }
 
     public SectionRecord(final byte[] transHash, int height, int timestamp, byte isFromCoinBase, byte isIn, byte isOut,
@@ -100,7 +101,7 @@ public class SectionRecord {
         this.totalOutAddresses = totalOutAddresses;
         this.totalInValue = totalInValue;
         this.totalOutValue = totalOutValue;
-        this.isValid = this.transHash != Utils.GetAppointInvalidTransHash();
+        this.isValid = !Arrays.equals(this.transHash, Utils.GetAppointInvalidTransHash());
     }
 
     public final byte[] TransHash() {

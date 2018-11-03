@@ -5,6 +5,12 @@ public class HashConflictLocation {
     public int locationInFile;
     public boolean isConflict;
 
+    public HashConflictLocation(){
+        this.fileCode = Utils.GetAppointInvalidShort();
+        this.locationInFile = Utils.GetAppointInvalidInt();
+        this.isConflict = true;
+    }
+
     public HashConflictLocation(final short fileCode, final int locationInFile, final boolean isConflict){
         this.fileCode = fileCode;
         this.locationInFile = locationInFile;

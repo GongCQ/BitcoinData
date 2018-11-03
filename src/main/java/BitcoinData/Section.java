@@ -15,7 +15,7 @@ public class Section {
     public Section(final byte[] bytes){
         int rawRecordsNum = (bytes.length - Parameter.SECTION_HEAD_SIZE) / Parameter.SECTION_RECORD_SIZE;
         if(rawRecordsNum * Parameter.SECTION_RECORD_SIZE + Parameter.SECTION_HEAD_SIZE != bytes.length ||
-           rawRecordsNum > Parameter.SECTION_RECORD_NUM){
+           rawRecordsNum != Parameter.SECTION_RECORD_NUM){
             throw new IllegalArgumentException(
                     String.format("invalid length of bytes, %d, (bytes.length - SECTION_HEAD_SIZE) / SECTION_RECORD_SIZE is not integer.", bytes.length));
         }
@@ -56,8 +56,8 @@ public class Section {
     public Section(final byte[] address, final SectionLocation previousLocation, final SectionLocation nextLocation,
                    final short tailLocator, final SectionLocation selfLocation, final short seq,
                    SectionRecord[] records){
-        if(records.length != Parameter.SECTION_RECORD_NUM){
-            throw new IllegalArgumentException("records.length must be SECTION_RECORD_NUM.");
+        if(records.length > Parameter.SECTION_RECORD_NUM){
+            throw new IllegalArgumentException("records.length must not exceed SECTION_RECORD_NUM.");
         }
         if(tailLocator % Parameter.SECTION_RECORD_NUM != (short)records.length){
             throw new IllegalArgumentException("invalid tailLocator or records.length.");
@@ -69,9 +69,15 @@ public class Section {
         this.tailLocator = tailLocator;
         this.selfLocation = selfLocation;
         this.seq = seq;
-        this.records = records;
+        this.records = new SectionRecord[Parameter.SECTION_RECORD_NUM];
+        for(int i = 0; i < records.length; i++){
+            this.records[i] = records[i];
+        }
 
         this.bytes = new byte[Parameter.SECTION_SIZE];
+        for(int i = 0; i < this.bytes.length; i++){
+            this.bytes[i] = Utils.APPOINT_INVALID_BYTE;
+        }
         System.arraycopy(address, 0, this.bytes, 0, Parameter.ADDRESS_SIZE);
         Utils.ShortToBytes(previousLocation.fileCode, this.bytes, Parameter.ADDRESS_SIZE);
         Utils.IntToBytes(previousLocation.locationInFile, this.bytes, Parameter.ADDRESS_SIZE + 2);
@@ -82,9 +88,9 @@ public class Section {
         Utils.IntToBytes(selfLocation.locationInFile, this.bytes, Parameter.ADDRESS_SIZE + 16);
         Utils.ShortToBytes(seq, this.bytes, Parameter.ADDRESS_SIZE + 20);
         for(int r = 0; r < records.length; r++){
-            System.arraycopy(records[r], 0, this.bytes,
-                      Parameter.SECTION_HEAD_SIZE + r * Parameter.SECTION_RECORD_SIZE,
-                             Parameter.SECTION_RECORD_SIZE);
+            System.arraycopy(records[r].Bytes(), 0, this.bytes,
+                    Parameter.SECTION_HEAD_SIZE + r * Parameter.SECTION_RECORD_SIZE,
+                    Parameter.SECTION_RECORD_SIZE);
         }
 
         this.isValid = this.address != Utils.GetAppointInvalidAddress();
@@ -96,10 +102,12 @@ public class Section {
 
     public void AppendRecord(final SectionRecord record){
         final int recordByteLocation = Section.GetRecordByteLocation(this.tailLocator);
-        System.arraycopy(record.Bytes(), 0, this.bytes, 0, recordByteLocation);
+        System.arraycopy(record.Bytes(), 0, this.bytes, recordByteLocation, Parameter.SECTION_RECORD_SIZE);
         this.records[this.tailLocator] = record;
         this.tailLocator++;
         this.tailLocator %= Parameter.SECTION_RECORD_NUM;
+        Utils.ShortToBytes(this.tailLocator, this.bytes,
+                Parameter.ADDRESS_SIZE + 2 * (Parameter.SIZE_OF_SHORT + Parameter.SIZE_OF_INT));
     }
 
     public final byte[] Address(){

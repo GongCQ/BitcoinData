@@ -10,13 +10,14 @@ public class HashIndex {
     private Data data;
     private HashIndexFile[] indexFiles;
     private ArrayList<HashIndexFile> hashConflictFile;
-    private HashMap<byte[], HashIndexRecord> indexCache;
+    private HashIndexCache indexCache;
     private ReentrantLock hashFreeLock;
     private ReentrantLock hashConflictLock;
 
     public HashIndex(Data data) throws IOException, IllegalAccessException {
         this.data = data;
         this.hashFreeLock = new ReentrantLock();
+        this.indexCache = new HashIndexCache();
         // hash index file
         this.indexFiles = new HashIndexFile[Parameter.MAX_HASH_INDEX_FILE];
         for(short i = 0; i < Parameter.MAX_HASH_INDEX_FILE; i++){
@@ -45,7 +46,7 @@ public class HashIndex {
     }
 
     public final HashIndexRecord ReadSearch(final byte[] address) throws IOException{
-        HashIndexRecord record = this.indexCache.get(address);  // memory cache
+        HashIndexRecord record = this.indexCache.Get(address);  // memory cache
         if(record == null){
             record = this.indexFiles[GetIndexFileCode(address)].GetRecord(GetLocationInIndexFile(address));  // hash index
             while(!address.equals(record.Address())){  // hash conflict
@@ -59,7 +60,7 @@ public class HashIndex {
     }
 
     public final HashIndexRecord WriteSearch(final byte[] address) throws IOException, IllegalAccessException{
-        HashIndexRecord record = this.indexCache.get(address);  // memory cache
+        HashIndexRecord record = this.indexCache.Get(address);  // memory cache
         if(record == null){
             short hashIndexFileCode = HashIndex.GetIndexFileCode(address);
             int locationInHashIndexFile = HashIndex.GetLocationInIndexFile(address);
@@ -78,6 +79,7 @@ public class HashIndex {
                         new HashConflictLocation(hashIndexFileCode, locationInHashIndexFile, false));
                 this.indexFiles[hashIndexFileCode].SetRecord(locationInHashIndexFile, newRecord);
                 this.hashFreeLock.unlock();
+                this.indexCache.Set(address, newRecord);
                 return newRecord;
             }
             else{
@@ -101,7 +103,7 @@ public class HashIndex {
                     HashIndexFile fileForNewRecord = this.hashConflictFile.get(newRecord.SelfLocation().fileCode);
                     fileForNewRecord.AppendRecord(newRecord);
 
-                    fileForRecord.SetNextLocation(record.SelfLocation().fileCode, newRecord.SelfLocation());
+                    fileForRecord.SetNextLocation(record.SelfLocation().locationInFile, newRecord.SelfLocation());
 
                     record = newRecord;
                     break;
@@ -112,6 +114,7 @@ public class HashIndex {
             }
             this.hashConflictLock.unlock();
         }
+        this.indexCache.Set(address, record);
         return record;
 
     }
@@ -136,7 +139,7 @@ public class HashIndex {
         return locationInFile;
     }
 
-    private HashConflictLocation GetNextFreeHashConflictLocation() throws IOException{
+    private HashConflictLocation GetNextFreeHashConflictLocation() throws IOException, IllegalAccessException{
         if(this.hashConflictFile.size() == 0){
             final String fileName = HashIndexFile.GetHashConflictFileNameByCode((short)0);
             this.hashConflictFile.add(0, new HashIndexFile((short)0, fileName, "rw", true));

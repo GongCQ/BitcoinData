@@ -1,6 +1,8 @@
 package BitcoinData;
 import org.bitcoinj.core.Base58;
 
+import java.util.Arrays;
+
 public class Utils {
     public static final byte APPOINT_INVALID_BYTE = 127;
     public static final byte MIN_BYTE = -128;
@@ -13,7 +15,7 @@ public class Utils {
     private static double APPOINT_INVALID_DOUBLE = 0;
 
     public final static byte[] GetAppointInvalidAddress(){
-        if(APPOINT_INVALID_ADDRESS.length != Parameter.ADDRESS_SIZE){
+        if(APPOINT_INVALID_ADDRESS == null || APPOINT_INVALID_ADDRESS.length != Parameter.ADDRESS_SIZE){
             APPOINT_INVALID_ADDRESS = new byte[Parameter.ADDRESS_SIZE];
             for(int i = 0; i < Parameter.ADDRESS_SIZE; i++){
                 APPOINT_INVALID_ADDRESS[i] = APPOINT_INVALID_BYTE;
@@ -23,7 +25,7 @@ public class Utils {
     }
 
     public final static byte[] GetAppointInvalidTransHash(){
-        if(APPOINT_INVALID_TRANS_HASH.length != Parameter.TRANS_HASH_SIZE){
+        if(APPOINT_INVALID_TRANS_HASH == null || APPOINT_INVALID_TRANS_HASH.length != Parameter.TRANS_HASH_SIZE){
             APPOINT_INVALID_TRANS_HASH = new byte[Parameter.TRANS_HASH_SIZE];
             for(int i = 0; i < Parameter.TRANS_HASH_SIZE; i++){
                 APPOINT_INVALID_TRANS_HASH[i] = APPOINT_INVALID_BYTE;
@@ -78,7 +80,7 @@ public class Utils {
     }
 
     public static boolean IsValidAddress(byte[] address){
-        return !address.equals(GetAppointInvalidAddress());
+        return !Arrays.equals(address, GetAppointInvalidAddress());
     }
 
     public static byte[] AddressStringToBytes(String addressString){

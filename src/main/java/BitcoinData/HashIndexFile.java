@@ -72,7 +72,10 @@ public class HashIndexFile {
         return hashIndexRecord;
     }
 
-    public final int GetNextFreeLocation(){
+    public final int GetNextFreeLocation() throws IllegalAccessException{
+        if(!this.isConflictFile){
+            throw new IllegalAccessException("can't get next free location in non-conflict file.");
+        }
         return this.usedNum;
     }
 
@@ -94,7 +97,10 @@ public class HashIndexFile {
         this.indexFile.write(record.Bytes());
     }
 
-    public int AppendRecord(HashIndexRecord record) throws IOException{
+    public int AppendRecord(HashIndexRecord record) throws IOException, IllegalAccessException{
+        if(!this.isConflictFile){
+            throw new IllegalAccessException("can't append index record in non-conflict file.");
+        }
 //      this.appendLock.lock();
         final int nextFreeLocation = this.GetNextFreeLocation();
         record.UpdateLocation(new HashConflictLocation(this.code, nextFreeLocation, this.isConflictFile));
